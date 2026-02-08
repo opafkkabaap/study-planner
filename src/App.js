@@ -1,24 +1,45 @@
-import logo from './logo.svg';
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
+import Sidebar from './components/Sidebar';
+import Dashboard from './components/Dashboard';
+import Pomodoro from './components/Pomodoro';
+import WeekSchedule from './components/WeekSchedule';
 import './App.css';
 
 function App() {
+  const [tasks, setTasks] = useState([
+    { id: 1, text: "Morning Yoga Bliss", done: false, date: 8, category: "present" },
+    { id: 2, text: "DSA - Binary Search revision", done: false, date: 8, category: "present" },
+    { id: 3, text: "Physics - Mechanics notes", done: true, date: 8, category: "present" },
+    { id: 4, text: "Maths - Calculus 50 problems", done: false, date: 10, category: "pending" },
+    { id: 5, text: "English vocab Day 12", done: false, date: 12, category: "pending" },
+  ]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="app-container">
+        <Sidebar />
+
+        <main className="main-area">
+          <Routes>
+            <Route 
+              path="/" 
+              element={<Dashboard tasks={tasks} setTasks={setTasks} />} 
+            />
+            <Route 
+              path="/pomodoro" 
+              element={<Pomodoro />} 
+            />
+            <Route 
+              path="/schedule" 
+              element={<WeekSchedule tasks={tasks} setTasks={setTasks} />} 
+            />
+            {/* You can add more pages later */}
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 

@@ -1,0 +1,164 @@
+.pomodoro-wrapper {
+  margin-left: 240px;
+  padding: 2rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+}
+
+.pomodoro-wrapper h1 {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.preset-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  padding: 0.8rem 1.6rem;
+  border: none;
+  border-radius: 50px;
+  background: #ecf0f1;
+  color: #2c3e50;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preset-btn.active,
+.preset-btn:hover {
+  background: #3498db;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.circle-timer {
+  position: relative;
+  width: 260px;
+  height: 260px;
+}
+
+.progress-ring {
+  width: 100%;
+  height: 100%;
+}
+
+.progress-ring__circle-bg {
+  fill: none;
+  stroke: #e0e0e0;
+  stroke-width: 12;
+}
+
+.progress-ring__circle {
+  fill: none;
+  stroke: #e74c3c;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.35s;
+}
+
+.timer-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.control-btn {
+  padding: 0.9rem 2rem;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 110px;
+  transition: all 0.2s;
+}
+
+.start,
+.resume {
+  background: #27ae60;
+  color: white;
+}
+
+.start:hover,
+.resume:hover {
+  background: #2ecc71;
+}
+
+.pause {
+  background: #f39c12;
+  color: white;
+}
+
+.pause:hover {
+  background: #f1c40f;
+}
+
+.stop {
+  background: #c0392b;
+  color: white;
+}
+
+.stop:hover {
+  background: #e74c3c;
+}
+
+.reset {
+  background: #7f8c8d;
+  color: white;
+}
+
+.reset:hover {
+  background: #95a5a6;
+}
+
+.animation-box {
+  width: 100%;
+  max-width: 400px;
+  height: 180px;
+  background: rgba(142, 68, 173, 0.15);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #8e44ad;
+  color: #8e44ad;
+  font-style: italic;
+}
+
+.animation-placeholder {
+  opacity: 0.7;
+}
+
+.finished-message {
+  text-align: center;
+  font-size: 1.4rem;
+  color: #27ae60;
+  margin-top: 1.5rem;
+  font-weight: 600;
+}

@@ -1,0 +1,73 @@
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background: #2c3e50;
+  color: white;
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #34495e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+}
+
+.sidebar-nav a {
+  display: block;
+  padding: 1rem 1.5rem;
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  background: #34495e;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1.5rem;
+}
+
+.sidebar-footer a {
+  color: #bdc3c7;
+  text-decoration: none;
+  display: block;
+  padding: 0.8rem;
+  border-radius: 6px;
+}
+
+.sidebar-footer a:hover {
+  background: #34495e;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+  /* Mobile open/close logic can be added later */
+}
