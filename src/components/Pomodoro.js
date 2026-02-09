@@ -78,22 +78,22 @@ export default function Pomodoro() {
   }, []);
 
   // Create simple beep sound using Web Audio API
-  useEffect(() => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    audioRef.current = new Audio();
-    // Simple beep using oscillator (fallback if no audio file)
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.5);
-    // Note: This is just a placeholder — in real app you can use a real .mp3
-  }, []);
+  // useEffect(() => {
+  //   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  //   audioRef.current = new Audio();
+  //   // Simple beep using oscillator (fallback if no audio file)
+  //   const oscillator = audioContext.createOscillator();
+  //   const gainNode = audioContext.createGain();
+  //   oscillator.connect(gainNode);
+  //   gainNode.connect(audioContext.destination);
+  //   oscillator.type = 'sine';
+  //   oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+  //   gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+  //   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+  //   oscillator.start();
+  //   oscillator.stop(audioContext.currentTime + 0.5);
+  //   // Note: This is just a placeholder — in real app you can use a real .mp3
+  // }, []);
 
   return (
     <div className="pomodoro-wrapper">

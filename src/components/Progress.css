@@ -1,0 +1,193 @@
+.progress-wrapper {
+  margin-left: 240px;
+  padding: 2rem 2.5rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.progress-wrapper h1 {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 2.2rem;
+  text-transform: lowercase;
+}
+
+.view-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.view-selector button {
+  padding: 0.7rem 1.8rem;
+  border: none;
+  border-radius: 30px;
+  background: #ecf0f1;
+  color: #2c3e50;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-selector button.active {
+  background: #3498db;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+.progress-content {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.chart-area {
+  flex: 1;
+  min-width: 450px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.series-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dot.series1 { background: #3498db; }
+.dot.series2 { background: #8e44ad; }
+
+.bars-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end; /* This forces bars to sit on the baseline */
+  height: 300px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(44, 62, 80, 0.1);
+}
+
+.bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
+  height: 100%; /* Important for percentage heights */
+}
+
+.bar-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end; /* Ensures bars grow from bottom */
+  justify-content: center;
+  width: 100%;
+  height: 100%; /* Context for the children heights */
+}
+
+.bar {
+  width: 18px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bar.series1 { background: #3498db; }
+.bar.series2 { background: #8e44ad; }
+
+.bar-label-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1rem;
+  min-height: 50px;
+}
+
+.bar-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.highest-tag {
+  font-size: 0.65rem;
+  background: #e74c3c;
+  color: white;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-area {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.stat-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.stat-circle:hover {
+  transform: scale(1.05);
+}
+
+.highest {
+  background: #ffffff;
+  border: 4px solid #bdc3c7;
+  color: #2c3e50;
+}
+
+.today {
+  background: #3498db;
+  color: white;
+  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+}
+
+.circle-content .value {
+  display: block;
+  font-size: 2.8rem;
+  font-weight: bold;
+}
+
+.circle-content .label {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  opacity: 0.9;
+}
+
+@media (max-width: 900px) {
+  .progress-wrapper { margin-left: 0; }
+  .progress-content { flex-direction: column; align-items: center; }
+  .chart-area { min-width: 90%; }
+}

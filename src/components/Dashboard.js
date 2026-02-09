@@ -67,7 +67,7 @@ export default function Dashboard() {
   return (
     <div className="dashboard-wrapper">
       <div className="dashboard-content">
-        <h1>Welcome back! 💪</h1>
+        <h1>Welcome back! </h1>
 
         <div className="cards-grid">
           {/* Present day work */}
@@ -102,29 +102,36 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Pending tasks */}
-          <div className="card pending-tasks">
-            <h3>Pending Tasks</h3>
-            {pendingTasks.length === 0 ? (
-              <p className="empty-text">You're all caught up! 🏆</p>
-            ) : (
-              <ul className="task-list">
-                {pendingTasks.map(task => (
-                  <li key={task.id}>
-                    <input
-                      type="checkbox"
-                      checked={task.done}
-                      onChange={() => toggleDone(task.id)}
-                    />
-                    <div className="task-info">
-                      <span className="task-text">{task.text}</span>
-                      <small className="task-date">Feb {task.date}</small>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+         {/* Pending tasks */}
+<div className="card pending-tasks">
+  <h3>Pending Tasks</h3>
+  {pendingTasks.length === 0 ? (
+    // ────────────────────────────────────────────────
+    //     This is the improved empty state logic
+    // ────────────────────────────────────────────────
+    tasks.some(t => t.category === "pending") ? (
+      <p className="empty-text">All pending tasks completed! 🎉</p>
+    ) : (
+      <p className="empty-text">No pending tasks yet 🏆</p>
+    )
+  ) : (
+    <ul className="task-list">
+      {pendingTasks.map(task => (
+        <li key={task.id} className={task.done ? "done" : ""}>
+          <input
+            type="checkbox"
+            checked={task.done}
+            onChange={() => toggleDone(task.id)}
+          />
+          <div className="task-info">
+            <span className="task-text">{task.text}</span>
+            <small className="task-date">Feb {task.date}</small>
           </div>
+        </li>
+      ))}
+    </ul>
+  )}
+</div> 
 
           {/* Interactive Calendar */}
           <div className="card calendar-preview">
@@ -162,7 +169,7 @@ export default function Dashboard() {
               setShowAddModal(true);
             }}
           >
-            Add Task (Today)
+            Add Task 
           </button>
           <button
             className="btn exam-notif-btn"
