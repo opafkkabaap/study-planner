@@ -1,9 +1,11 @@
-// src/components/Dashboard.jsx
 import { useState } from 'react';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const todayDay = 8; // February 08, 2026
+  const todayDay = 8;
+  const currentMonth = "Feb";
+  const currentYear = 2026;
+  const daysInFeb = 28; // 2026 is not a leap year
 
   const exams = [
     { id: 1, subject: 'DSA PAT', date: 9, month: 'Feb', year: 2026 },
@@ -24,8 +26,8 @@ export default function Dashboard() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showExamModal, setShowExamModal] = useState(false);
 
-  const presentTasks = tasks.filter(t => t.category === "present");
-  const pendingTasks = tasks.filter(t => t.category === "pending");
+  const presentTasks = tasks.filter(t => t.date === todayDay);
+  const otherTasks = tasks.filter(t => t.date !== todayDay);
 
   const addTask = () => {
     if (!newTaskText.trim()) return;
@@ -33,32 +35,20 @@ export default function Dashboard() {
       id: Date.now(),
       text: newTaskText.trim(),
       done: false,
-      category: "present",
+      category: selectedDate === todayDay ? "present" : "pending",
       date: selectedDate,
     };
     setTasks(prev => [...prev, newTask]);
     setNewTaskText("");
-    setSelectedDate(todayDay);
     setShowAddModal(false);
   };
 
   const toggleDone = (id) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id ? { ...task, done: !task.done } : task
-      )
-    );
+    setTasks(prev => prev.map(task => 
+      task.id === id ? { ...task, done: !task.done } : task
+    ));
   };
 
-  const moveToPending = (id) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id ? { ...task, category: "pending" } : task
-      )
-    );
-  };
-
-  // New: Open add modal with pre-selected date from calendar click
   const handleCalendarClick = (day) => {
     setSelectedDate(day);
     setShowAddModal(true);
@@ -67,176 +57,127 @@ export default function Dashboard() {
   return (
     <div className="dashboard-wrapper">
       <div className="dashboard-content">
-        <h1>Welcome back! </h1>
+        <h1>Welcome back!</h1>
 
         <div className="cards-grid">
-          {/* Present day work */}
           <div className="card present-day">
-            <h3>Today's Work (Feb {todayDay})</h3>
+            <h3>Today's Work ({currentMonth} {todayDay})</h3>
             {presentTasks.length === 0 ? (
               <p className="empty-text">Add some tasks to crush today!</p>
             ) : (
               <ul className="task-list">
                 {presentTasks.map(task => (
                   <li key={task.id} className={task.done ? "done" : ""}>
-                    <input
-                      type="checkbox"
-                      checked={task.done}
-                      onChange={() => toggleDone(task.id)}
-                    />
+                    <input type="checkbox" checked={task.done} onChange={() => toggleDone(task.id)} />
                     <div className="task-info">
                       <span className="task-text">{task.text}</span>
-                      <small className="task-date">Feb {task.date}</small>
                     </div>
-                    {!task.done && (
-                      <button
-                        className="move-btn"
-                        onClick={() => moveToPending(task.id)}
-                      >
-                        → Pending
-                      </button>
-                    )}
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
-         {/* Pending tasks */}
-<div className="card pending-tasks">
-  <h3>Pending Tasks</h3>
-  {pendingTasks.length === 0 ? (
-    // ────────────────────────────────────────────────
-    //     This is the improved empty state logic
-    // ────────────────────────────────────────────────
-    tasks.some(t => t.category === "pending") ? (
-      <p className="empty-text">All pending tasks completed! 🎉</p>
-    ) : (
-      <p className="empty-text">No pending tasks yet 🏆</p>
-    )
-  ) : (
-    <ul className="task-list">
-      {pendingTasks.map(task => (
-        <li key={task.id} className={task.done ? "done" : ""}>
-          <input
-            type="checkbox"
-            checked={task.done}
-            onChange={() => toggleDone(task.id)}
-          />
-          <div className="task-info">
-            <span className="task-text">{task.text}</span>
-            <small className="task-date">Feb {task.date}</small>
+          <div className="card pending-tasks">
+            <h3>Upcoming/Other Tasks</h3>
+            {otherTasks.length === 0 ? (
+              <p className="empty-text">No other tasks scheduled 🏆</p>
+            ) : (
+              <ul className="task-list">
+                {otherTasks.map(task => (
+                  <li key={task.id} className={task.done ? "done" : ""}>
+                    <input type="checkbox" checked={task.done} onChange={() => toggleDone(task.id)} />
+                    <div className="task-info">
+                      <span className="task-text">{task.text}</span>
+                      <small className="task-date">{currentMonth} {task.date}</small>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        </li>
-      ))}
-    </ul>
-  )}
-</div> 
 
-          {/* Interactive Calendar */}
           <div className="card calendar-preview">
-            <h3>February 2026</h3>
+            <h3>{currentMonth} {currentYear}</h3>
             <div className="mini-calendar">
-              {Array.from({ length: 31 }, (_, i) => {
+              {Array.from({ length: daysInFeb }, (_, i) => {
                 const day = i + 1;
                 const isToday = day === todayDay;
                 const hasExam = exams.some(e => e.date === day);
+                const hasTask = tasks.some(t => t.date === day);
                 return (
                   <div
                     key={day}
-                    className={`calendar-day 
-                      ${isToday ? "today" : ""} 
-                      ${hasExam ? "exam" : ""}`}
+                    className={`calendar-day ${isToday ? "today" : ""} ${hasExam ? "exam" : ""} ${hasTask ? "has-task" : ""}`}
                     onClick={() => handleCalendarClick(day)}
-                    role="button"
-                    tabIndex={0}
-                    title={`Add task for Feb ${day}`}
                   >
                     {day}
                   </div>
                 );
               })}
             </div>
-            <p className="calendar-hint">Click any date to add a task for that day</p>
+            <p className="calendar-hint">Click a date to schedule</p>
           </div>
         </div>
 
         <div className="action-row">
-          <button
-            className="btn add-tasks-btn"
-            onClick={() => {
-              setSelectedDate(todayDay);
-              setShowAddModal(true);
-            }}
-          >
-            Add Task 
+          <button className="btn add-tasks-btn" onClick={() => { setSelectedDate(todayDay); setShowAddModal(true); }}>
+            Add Task
           </button>
-          <button
-            className="btn exam-notif-btn"
-            onClick={() => setShowExamModal(true)}
-          >
-            Exam Notification
+          <button className="btn exam-notif-btn" onClick={() => setShowExamModal(true)}>
+            Exam Schedule
           </button>
         </div>
       </div>
 
-      {/* Add Task Modal – now date can come from calendar click */}
       {showAddModal && (
         <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
           <div className="add-modal" onClick={e => e.stopPropagation()}>
-            <h3>Add New Task for Feb {selectedDate}</h3>
+            <h3>New Task for {currentMonth} {selectedDate}</h3>
             <input
               type="text"
               value={newTaskText}
               onChange={e => setNewTaskText(e.target.value)}
-              placeholder="e.g. Revise Thermodynamics Ch 3"
+              placeholder="What needs to be done?"
               autoFocus
             />
-            <div className="date-picker">
-              <label>Change Date:</label>
-              <select
-                value={selectedDate}
-                onChange={e => setSelectedDate(Number(e.target.value))}
-              >
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                  <option key={day} value={day}>
-                    Feb {day}
-                  </option>
-                ))}
-              </select>
+            
+            <p className="picker-label">Select Date:</p>
+            <div className="modal-mini-calendar">
+               {Array.from({ length: daysInFeb }, (_, i) => {
+                const day = i + 1;
+                return (
+                  <div 
+                    key={day} 
+                    className={`picker-day ${selectedDate === day ? "selected" : ""} ${day === todayDay ? "is-today" : ""}`}
+                    onClick={() => setSelectedDate(day)}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
             </div>
+
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setShowAddModal(false)}>
-                Cancel
-              </button>
-              <button className="add-btn" onClick={addTask}>
-                Add Task
-              </button>
+              <button className="cancel-btn" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button className="add-btn" onClick={addTask}>Add Task</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Exam Notification Modal (unchanged) */}
       {showExamModal && (
         <div className="modal-backdrop" onClick={() => setShowExamModal(false)}>
           <div className="exam-modal" onClick={e => e.stopPropagation()}>
             <h3>Upcoming Exams</h3>
-            {exams.length === 0 ? (
-              <p>No exams scheduled yet.</p>
-            ) : (
-              <ul className="exam-list">
-                {exams.map(ex => (
-                  <li key={ex.id}>
-                    <strong>{ex.subject}</strong>
-                    <span> – {ex.month} {ex.date}, {ex.year}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <button className="close-btn" onClick={() => setShowExamModal(false)}>
-              Close
-            </button>
+            <ul className="exam-list">
+              {exams.map(ex => (
+                <li key={ex.id}>
+                  <strong>{ex.subject}</strong> — {ex.month} {ex.date}
+                </li>
+              ))}
+            </ul>
+            <button className="close-btn" onClick={() => setShowExamModal(false)}>Close</button>
           </div>
         </div>
       )}

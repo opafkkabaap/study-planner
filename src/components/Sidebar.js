@@ -5,7 +5,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <h2>study planner</h2>
+        <h2>study planner 📖</h2>
         <button className="hamburger">☰</button>
       </div>
 

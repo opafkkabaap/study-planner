@@ -51,10 +51,10 @@ export default function Progress() {
         <div className="chart-area">
           <div className="chart-header">
             <span className="series-label">
-              <span className="dot series1"></span> Series 1
+              <span className="dot series1"></span> Maths
             </span>
             <span className="series-label">
-              <span className="dot series2"></span> Series 2
+              <span className="dot series2"></span> Physics
             </span>
           </div>
 

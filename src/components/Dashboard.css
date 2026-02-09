@@ -304,3 +304,67 @@
   margin-top: 1rem;
   font-style: italic;
 }
+/* Indicator for days that have tasks */
+.calendar-day.has-task {
+  /* This creates a 3px "border" using a background trick to support rounded corners */
+  border: 3px solid transparent;
+  background-image: 
+    linear-gradient(rgba(44, 62, 80, 0.75), rgba(44, 62, 80, 0.75)), 
+    linear-gradient(135deg, #f1c40f, #f39c12);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+/* Ensure the gradient pops on hover */
+.calendar-day.has-task:hover {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), 
+    linear-gradient(135deg, #ffe66d, #f1c40f);
+  transform: scale(1.08);
+}
+
+/* Modal Calendar Picker Styles */
+.picker-label {
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.modal-mini-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 1.5rem;
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.picker-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  color: #444;
+  transition: 0.2s;
+}
+
+.picker-day:hover {
+  background: #e0e0e0;
+}
+
+.picker-day.selected {
+  background: #8e44ad !important;
+  color: white;
+  font-weight: bold;
+}
+
+.picker-day.is-today {
+  color: #3498db;
+  text-decoration: underline;
+  font-weight: bold;
+}

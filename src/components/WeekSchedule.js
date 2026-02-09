@@ -1,12 +1,13 @@
-// src/components/WeekSchedule.jsx
 import { useState } from 'react';
 import './WeekSchedule.css';
 
 export default function WeekSchedule({ tasks, setTasks }) {
+  // Temporary states for the dropdowns
   const [tempMonth, setTempMonth] = useState('april');
   const [tempWeek, setTempWeek] = useState('week1');
   const [tempYear, setTempYear] = useState('2026');
 
+  // Confirmed states (what the UI actually displays)
   const [selectedMonth, setSelectedMonth] = useState('april');
   const [selectedWeek, setSelectedWeek] = useState('week1');
   const [selectedYear, setSelectedYear] = useState('2026');
@@ -20,7 +21,6 @@ export default function WeekSchedule({ tasks, setTasks }) {
   const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
   const weeks = ['week1', 'week2', 'week3', 'week4', 'week5'];
   const years = ['2025', '2026', '2027'];
-
   const days = [1, 2, 3, 4, 5, 6, 7];
 
   const handleSubmit = () => {
@@ -31,14 +31,14 @@ export default function WeekSchedule({ tasks, setTasks }) {
     setTimeout(() => setSubmitMessage(''), 2000);
   };
 
-  // ────────────────────────────────────────────────
-  //  Shared tasks logic
-  // ────────────────────────────────────────────────
-
+  // Filter tasks based on the day AND the current context (month/year)
   const getTasksForDay = (day) => {
-    // Safe guard: if tasks is undefined → return empty array
     if (!tasks || !Array.isArray(tasks)) return [];
-    return tasks.filter(t => t.date === day);
+    return tasks.filter(t => 
+      t.date === day && 
+      t.month === selectedMonth && 
+      t.year === selectedYear
+    );
   };
 
   const addTaskToDay = () => {
@@ -49,7 +49,8 @@ export default function WeekSchedule({ tasks, setTasks }) {
       text: newTaskText.trim(),
       done: false,
       date: currentDay,
-      category: 'present',
+      month: selectedMonth, // Store month to prevent tasks bleeding into other months
+      year: selectedYear,
     };
 
     setTasks(prev => [...prev, newTask]);
@@ -72,12 +73,11 @@ export default function WeekSchedule({ tasks, setTasks }) {
     setCurrentDay(day);
     setActiveDay(day);
     setShowTaskModal(true);
-    setNewTaskText('');
   };
 
   const closeModal = () => {
     setShowTaskModal(false);
-    setCurrentDay(null);
+    setActiveDay(null);
     setNewTaskText('');
   };
 
@@ -85,8 +85,7 @@ export default function WeekSchedule({ tasks, setTasks }) {
     const dayTasks = getTasksForDay(day);
     const total = dayTasks.length;
     const pending = dayTasks.filter(t => !t.done).length;
-    if (total === 0) return null;
-    return { total, pending };
+    return total === 0 ? null : { total, pending };
   };
 
   return (
@@ -106,14 +105,13 @@ export default function WeekSchedule({ tasks, setTasks }) {
           </select>
 
           <button className="submit-btn" onClick={handleSubmit}>
-            Submit
+            Update View
           </button>
         </div>
-
         {submitMessage && <div className="submit-message">{submitMessage}</div>}
       </div>
 
-      <h2>your tasks for the week</h2>
+      <h2>tasks for {selectedMonth} {selectedYear}</h2>
 
       <div className="week-grid">
         {days.map(day => {
@@ -126,11 +124,12 @@ export default function WeekSchedule({ tasks, setTasks }) {
               className={`day-card ${activeDay === day ? 'active' : ''} ${hasPending ? 'has-pending' : ''}`}
               onClick={() => openDayModal(day)}
             >
+              <span className="day-label">Day</span>
               <span className="day-number">{day}</span>
               {summary && (
                 <div className="day-summary">
-                  {summary.total} task{summary.total !== 1 ? 's' : ''}
-                  {hasPending && <span className="pending-badge">{summary.pending} pending</span>}
+                  {summary.total} {summary.total === 1 ? 'task' : 'tasks'}
+                  {hasPending && <span className="pending-badge">{summary.pending}</span>}
                 </div>
               )}
             </div>
@@ -139,48 +138,53 @@ export default function WeekSchedule({ tasks, setTasks }) {
 
         <div className="week-summary-card">
           <div className="summary-content">
+            <span className="summary-icon">🗓️</span>
             <h4>{selectedWeek}</h4>
-            <p>{selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1)}</p>
-            <p>{selectedYear}</p>
+            <p className="summary-sub">{selectedMonth}</p>
+            <p className="summary-year">{selectedYear}</p>
           </div>
         </div>
       </div>
 
-      {showTaskModal && currentDay && (
+      {showTaskModal && (
         <div className="modal-backdrop" onClick={closeModal}>
           <div className="task-modal" onClick={e => e.stopPropagation()}>
-            <h3>Tasks for Day {currentDay} — Feb {currentDay}, {selectedYear}</h3>
+            <div className="modal-header">
+              <h3>Day {currentDay} Summary</h3>
+              <p>{selectedMonth} {selectedYear}</p>
+            </div>
 
             <div className="task-input-area">
               <input
                 type="text"
                 value={newTaskText}
                 onChange={e => setNewTaskText(e.target.value)}
-                placeholder="Add new task..."
+                placeholder="What needs to be done?"
                 onKeyDown={e => e.key === 'Enter' && addTaskToDay()}
+                autoFocus
               />
               <button className="add-task-btn" onClick={addTaskToDay}>+</button>
             </div>
 
             <div className="task-list-container">
               {getTasksForDay(currentDay).length === 0 ? (
-                <p className="no-tasks">No tasks yet — add some!</p>
+                <div className="no-tasks">
+                  <p>No tasks scheduled for this day.</p>
+                </div>
               ) : (
                 <ul className="task-list">
                   {getTasksForDay(currentDay).map(task => (
                     <li key={task.id} className={task.done ? 'done' : ''}>
-                      <input
-                        type="checkbox"
-                        checked={task.done}
-                        onChange={() => toggleTaskDone(task.id)}
-                      />
+                      <label className="checkbox-container">
+                        <input
+                          type="checkbox"
+                          checked={task.done}
+                          onChange={() => toggleTaskDone(task.id)}
+                        />
+                        <span className="checkmark"></span>
+                      </label>
                       <span className="task-text">{task.text}</span>
-                      <button
-                        className="delete-btn"
-                        onClick={() => deleteTask(task.id)}
-                      >
-                        ×
-                      </button>
+                      <button className="delete-btn" onClick={() => deleteTask(task.id)}>×</button>
                     </li>
                   ))}
                 </ul>
@@ -188,7 +192,7 @@ export default function WeekSchedule({ tasks, setTasks }) {
             </div>
 
             <button className="close-modal-btn" onClick={closeModal}>
-              Close
+              Done
             </button>
           </div>
         </div>
