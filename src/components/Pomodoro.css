@@ -9,8 +9,11 @@
   color: #2c3e50;
   margin-bottom: 2rem;
   text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
+/* presets */
 .preset-buttons {
   display: flex;
   justify-content: center;
@@ -20,55 +23,59 @@
 }
 
 .preset-btn {
-  padding: 0.8rem 1.6rem;
+  padding: 0.7rem 1.5rem;
   border: none;
   border-radius: 50px;
-  background: #ecf0f1;
+  background: rgba(255,255,255,0.6);
   color: #2c3e50;
   font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .preset-btn.active,
 .preset-btn:hover {
-  background: #3498db;
+  background: #2c3e50;
   color: white;
   transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(44,62,80,0.3);
 }
 
+/* timer layout */
 .timer-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1.4rem;
 }
 
+/* circle */
 .circle-timer {
   position: relative;
-  width: 260px;
-  height: 260px;
+  width: 200px;
+  height: 200px;
 }
 
 .progress-ring {
   width: 100%;
   height: 100%;
+  transform: rotate(-90deg);
 }
 
 .progress-ring__circle-bg {
   fill: none;
-  stroke: #e0e0e0;
-  stroke-width: 12;
+  stroke: rgba(0,0,0,0.08);
+  stroke-width: 8;
 }
 
 .progress-ring__circle {
   fill: none;
-  stroke: #e74c3c;
-  stroke-width: 12;
+  stroke-width: 8;
   stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
-  transition: stroke-dashoffset 0.35s;
+  transition: stroke-dashoffset 0.9s linear, stroke 0.6s ease;
 }
 
 .timer-display {
@@ -76,11 +83,31 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 3.8rem;
-  font-weight: bold;
+  font-size: 2.8rem;
+  font-weight: 800;
   color: #2c3e50;
+  letter-spacing: 1px;
 }
 
+/* phase badge */
+.phase-badge {
+  background: rgba(231,76,60,0.12);
+  color: #c0392b;
+  border: 1.5px solid rgba(231,76,60,0.3);
+  padding: 0.45rem 1.4rem;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.4s;
+}
+
+.phase-badge.break {
+  background: rgba(0,184,148,0.12);
+  color: #00b894;
+  border-color: rgba(0,184,148,0.35);
+}
+
+/* controls */
 .controls {
   display: flex;
   gap: 1rem;
@@ -89,76 +116,75 @@
 }
 
 .control-btn {
-  padding: 0.9rem 2rem;
+  padding: 0.8rem 2rem;
   border: none;
   border-radius: 50px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  min-width: 110px;
   transition: all 0.2s;
+  min-width: 100px;
 }
 
-.start,
-.resume {
-  background: #27ae60;
-  color: white;
+.control-btn:hover { transform: translateY(-2px); }
+.control-btn:active { transform: scale(0.97); }
+
+.start  { background: #27ae60; color: white; }
+.start:hover  { background: #2ecc71; }
+.resume { background: #27ae60; color: white; }
+.resume:hover { background: #2ecc71; }
+.pause  { background: #f39c12; color: white; }
+.pause:hover  { background: #f1c40f; color: #2c3e50; }
+.stop   { background: #e74c3c; color: white; }
+.stop:hover   { background: #c0392b; }
+
+/* session dots */
+.session-dots {
+  display: flex;
+  gap: 10px;
 }
 
-.start:hover,
-.resume:hover {
-  background: #2ecc71;
+.session-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(44,62,80,0.15);
+  transition: background 0.4s, transform 0.3s;
 }
 
-.pause {
-  background: #f39c12;
-  color: white;
+.session-dot.done {
+  background: #6c5ce7;
+  transform: scale(1.2);
 }
 
-.pause:hover {
-  background: #f1c40f;
-}
-
-.stop {
-  background: #c0392b;
-  color: white;
-}
-
-.stop:hover {
-  background: #e74c3c;
-}
-
-.reset {
-  background: #7f8c8d;
-  color: white;
-}
-
-.reset:hover {
-  background: #95a5a6;
-}
-
+/* animation box */
 .animation-box {
   width: 100%;
-  max-width: 400px;
-  height: 180px;
-  background: rgba(142, 68, 173, 0.15);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed #8e44ad;
-  color: #8e44ad;
-  font-style: italic;
+  max-width: 520px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
 
-.animation-placeholder {
-  opacity: 0.7;
+.journey-box {
+  background: #87CEEB;
+  padding: 0;
+  border: none;
 }
 
+.journey-box canvas {
+  display: block;
+  width: 100%;
+}
+
+/* finished message */
 .finished-message {
   text-align: center;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   color: #27ae60;
-  margin-top: 1.5rem;
   font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .pomodoro-wrapper { margin-left: 0; }
 }
