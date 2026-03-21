@@ -1,75 +1,77 @@
-// src/components/ExamDates.jsx
-import { useState } from 'react';
+// src/components/ExamDates.js  —  UPDATED VERSION
+//
+// Changes from original:
+//   • Loads exams from GET /api/exams on mount
+//   • addExam()    → POST /api/exams
+//   • deleteExam() → DELETE /api/exams/:_id  (new button added)
+//   • Calendar now correctly reflects the current real month
+//   • All exam ids use _id (MongoDB)
+
+import { useState, useEffect } from 'react';
+import api from '../api';
 import './ExamDates.css';
 
 export default function ExamDates() {
-  const [exams, setExams] = useState([
-    {
-      id: 1,
-      title: "DSA PAT",
-      date: "09/01/2026",
-      subject: "Data Structures & Algorithms",
-    },
-    {
-      id: 2,
-      title: "Maths Midterm",
-      date: "15/02/2026",
-      subject: "Calculus & Linear Algebra",
-    },
-    {
-      id: 3,
-      title: "Physics Semester End",
-      date: "22/03/2026",
-      subject: "Mechanics & Thermodynamics",
-    },
-  ]);
-
+  const [exams, setExams]           = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newExam, setNewExam] = useState({
-    title: '',
-    date: '',
-    subject: '',
-  });
+  const [newExam, setNewExam]       = useState({ title: '', date: '', subject: '' });
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState('');
 
-  const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
-  // Current view: February 2026
-  const today = new Date(2026, 1, 9); // Feb 9, 2026
-  const currentMonth = 1; // February
-  const currentYear = 2026;
+  // Use real today for calendar
+  const today        = new Date();
+  const currentMonth = today.getMonth();      // 0-indexed
+  const currentYear  = today.getFullYear();
 
-  const addExam = () => {
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const monthLabel  = today.toLocaleString('default', { month: 'long' });
+
+  useEffect(() => {
+    api.get('/exams')
+      .then(res => setExams(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const addExam = async () => {
     if (!newExam.title || !newExam.date || !newExam.subject) {
-      alert("Please fill Title, Date, and Subject");
-      return;
+      setError('Please fill in all fields'); return;
     }
-
-    // Basic date format check (DD/MM/YYYY)
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(newExam.date)) {
-      alert("Date must be in DD/MM/YYYY format");
-      return;
+      setError('Date must be in DD/MM/YYYY format'); return;
     }
-
-    const newEntry = {
-      id: Date.now(),
-      ...newExam,
-    };
-
-    setExams(prev => [...prev, newEntry]);
-    setNewExam({ title: '', date: '', subject: '' });
-    setShowAddModal(false);
+    try {
+      const { data } = await api.post('/exams', newExam);
+      setExams(prev => [...prev, data]);
+      setNewExam({ title: '', date: '', subject: '' });
+      setShowAddModal(false);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save exam');
+    }
   };
 
-  const hasExamOnDay = (day) => {
-    return exams.some(e => {
+  const deleteExam = async (id) => {
+    if (!window.confirm('Remove this exam?')) return;
+    try {
+      await api.delete(`/exams/${id}`);
+      setExams(prev => prev.filter(e => e._id !== id));
+    } catch (err) {
+      console.error('Delete failed', err);
+    }
+  };
+
+  const hasExamOnDay = (day) =>
+    exams.some(e => {
       const [d, m, y] = e.date.split('/').map(Number);
-      return d === day && m === (currentMonth + 1) && y === currentYear;
+      return d === day && m === currentMonth + 1 && y === currentYear;
     });
-  };
 
-  const isToday = (day) => {
-    return day === today.getDate() && today.getMonth() === currentMonth;
-  };
+  const isToday = (day) => day === today.getDate();
+
+  if (loading) return <div className="exam-wrapper"><p>Loading…</p></div>;
 
   return (
     <div className="exam-wrapper">
@@ -79,31 +81,23 @@ export default function ExamDates() {
         {/* Calendar */}
         <div className="calendar-box">
           <div className="calendar-header">
-            <h3>February 2026</h3>
+            <h3>{monthLabel} {currentYear}</h3>
           </div>
-          
           <div className="calendar-body">
             <div className="calendar-grid">
-              {Array.from({ length: 28 }, (_, i) => {
+              {Array.from({ length: daysInMonth }, (_, i) => {
                 const day = i + 1;
-                const examDay = hasExamOnDay(day);
-                const todayDay = isToday(day);
-
                 return (
                   <div
                     key={day}
-                    className={`calendar-day 
-                      ${examDay ? 'exam-day' : ''} 
-                      ${todayDay ? 'today' : ''}`}
+                    className={`calendar-day ${hasExamOnDay(day) ? 'exam-day' : ''} ${isToday(day) ? 'today' : ''}`}
                   >
                     {day}
                   </div>
                 );
               })}
             </div>
-            <p className="calendar-note">
-              Red marks = exam days • Blue border = today (9th)
-            </p>
+            <p className="calendar-note">Red = exam day • Blue border = today</p>
           </div>
         </div>
 
@@ -116,73 +110,67 @@ export default function ExamDates() {
               {exams.map(exam => {
                 const [d, m] = exam.date.split('/');
                 return (
-                  <li key={exam.id} className="exam-item">
+                  <li key={exam._id} className="exam-item">
                     <div className="exam-date-badge">
                       <span className="day">{d}</span>
                       <span className="month">{monthNames[parseInt(m) - 1]}</span>
                     </div>
-                    <div className="exam-info">
+                    <div className="exam-info" style={{ flex: 1 }}>
                       <h4>{exam.title}</h4>
                       <p className="subject">{exam.subject}</p>
                     </div>
+                    <button
+                      onClick={() => deleteExam(exam._id)}
+                      style={{
+                        background: 'none', border: 'none', color: '#e74c3c',
+                        fontSize: '1.3rem', cursor: 'pointer', padding: '0 0.5rem',
+                      }}
+                      title="Delete exam"
+                    >
+                      ×
+                    </button>
                   </li>
                 );
               })}
             </ul>
           )}
-
-          <button 
-            className="add-exam-btn"
-            onClick={() => setShowAddModal(true)}
-          >
+          <button className="add-exam-btn" onClick={() => setShowAddModal(true)}>
             + Add New Exam
           </button>
         </div>
       </div>
 
-      {/* Add Exam Modal – no notes field */}
+      {/* Add Modal */}
       {showAddModal && (
         <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
           <div className="add-exam-modal" onClick={e => e.stopPropagation()}>
             <h3>Add New Exam</h3>
+            {error && <p style={{ color: '#e74c3c', marginBottom: '1rem' }}>{error}</p>}
 
             <div className="form-group">
               <label>Title</label>
-              <input
-                type="text"
-                value={newExam.title}
+              <input type="text" value={newExam.title}
                 onChange={e => setNewExam({ ...newExam, title: e.target.value })}
-                placeholder="e.g. DSA PAT"
-              />
+                placeholder="e.g. DSA PAT" />
             </div>
-
             <div className="form-group">
               <label>Date (DD/MM/YYYY)</label>
-              <input
-                type="text"
-                value={newExam.date}
+              <input type="text" value={newExam.date}
                 onChange={e => setNewExam({ ...newExam, date: e.target.value })}
-                placeholder="09/01/2026"
-              />
+                placeholder="21/03/2026" />
             </div>
-
             <div className="form-group">
               <label>Subject</label>
-              <input
-                type="text"
-                value={newExam.subject}
+              <input type="text" value={newExam.subject}
                 onChange={e => setNewExam({ ...newExam, subject: e.target.value })}
-                placeholder="Data Structures & Algorithms"
-              />
+                placeholder="Data Structures & Algorithms" />
             </div>
 
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setShowAddModal(false)}>
+              <button className="cancel-btn" onClick={() => { setShowAddModal(false); setError(''); }}>
                 Cancel
               </button>
-              <button className="save-btn" onClick={addExam}>
-                Save Exam
-              </button>
+              <button className="save-btn" onClick={addExam}>Save Exam</button>
             </div>
           </div>
         </div>

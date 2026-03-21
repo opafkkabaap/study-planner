@@ -46,6 +46,7 @@
   gap: 0.9rem;
   padding: 0.6rem 0;
   border-bottom: 1px solid rgba(255,255,255,0.12);
+  flex-wrap: wrap;           /* better mobile behavior */
 }
 
 .task-list li:last-child {
@@ -61,20 +62,6 @@
   opacity: 0.65;
 }
 
-.move-btn {
-  background: #e67e22;
-  color: white;
-  border: none;
-  padding: 0.35rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  cursor: pointer;
-}
-
-.move-btn:hover {
-  background: #d35400;
-}
-
 .empty-text {
   text-align: center;
   color: #bdc3c7;
@@ -82,7 +69,8 @@
   margin-top: 3rem;
 }
 
-/* Mini calendar */
+/* ── Mini Calendar ──────────────────────────────────────────────── */
+
 .mini-calendar {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -98,15 +86,33 @@
   background: rgba(255,255,255,0.12);
   border-radius: 6px;
   transition: all 0.15s;
+  cursor: pointer;
+  user-select: none;
 }
 
 .calendar-day:hover {
-  background: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.35);
+  transform: scale(1.08);
+}
+
+.calendar-day:active {
+  transform: scale(0.95);
 }
 
 .calendar-day.today {
-  background: #3498db;
-  font-weight: bold;
+  background: #3498db !important;
+  color: white !important;
+  font-weight: bold !important;
+  box-shadow: 0 0 0 3.5px rgba(52, 152, 219, 0.5) !important;
+  position: relative;
+}
+
+.calendar-day.today.has-task {
+  background: #2980b9 !important;
+  border: 3px solid #f1c40f !important;
+  box-shadow: 
+    0 0 0 4px rgba(52, 152, 219, 0.4),
+    inset 0 0 6px rgba(241, 196, 15, 0.5) !important;
 }
 
 .calendar-day.exam {
@@ -115,10 +121,28 @@
   font-weight: bold;
 }
 
-/* Buttons */
+.calendar-day.has-task {
+  border: 3px solid transparent;
+  background-image: 
+    linear-gradient(rgba(44, 62, 80, 0.75), rgba(44, 62, 80, 0.75)), 
+    linear-gradient(135deg, #f1c40f, #f39c12);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.calendar-day.has-task:hover {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), 
+    linear-gradient(135deg, #ffe66d, #f1c40f);
+}
+
+/* ── Buttons & Actions ──────────────────────────────────────────── */
+
 .action-row {
   display: flex;
   gap: 1.2rem;
+  margin-top: 1rem;
+  justify-content: flex-start;
 }
 
 .btn {
@@ -153,7 +177,50 @@
   background: #2ecc71;
 }
 
-/* Modal */
+.move-btn {
+  background: #e67e22;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.13s;
+}
+
+.move-btn:hover {
+  background: #d35400;
+}
+
+.move-btn:active {
+  transform: scale(0.96);
+}
+
+/* ── Task with date / Pending styling ───────────────────────────── */
+
+.task-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-date {
+  font-size: 0.78rem;
+  color: #bdc3c7;
+  margin-top: 0.15rem;
+}
+
+.warning-title {
+  color: #e74c3c !important;
+}
+
+.overdue-item .task-text {
+  color: #ffeaa7;
+}
+
+/* ── Modal Styles ───────────────────────────────────────────────── */
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -206,35 +273,6 @@
 .add-btn:hover {
   background: #9b59b6;
 }
-/* ... keep all previous styles ... */
-
-/* Task with date */
-.task-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.task-date {
-  font-size: 0.8rem;
-  color: #bdc3c7;
-  margin-top: 0.2rem;
-}
-
-/* Date picker in modal */
-.date-picker {
-  margin: 1rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.date-picker select {
-  padding: 0.8rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-}
 
 /* Exam modal */
 .exam-modal {
@@ -255,6 +293,10 @@
 .exam-list li {
   padding: 1rem;
   border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #333;
 }
 
 .exam-list li:last-child {
@@ -275,96 +317,46 @@
   cursor: pointer;
   width: 100%;
 }
-/* Make calendar days look clickable */
-.calendar-day {
-  aspect-ratio: 1;
+
+/* Calendar header */
+.calendar-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.12);
-  border-radius: 6px;
-  transition: all 0.15s;
-  cursor: pointer;
-  user-select: none;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
 }
 
-.calendar-day:hover {
-  background: rgba(255,255,255,0.35);
-  transform: scale(1.08);
-}
-
-.calendar-day:active {
-  transform: scale(0.95);
-}
-
-.calendar-hint {
+.calendar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  min-width: 120px;
   text-align: center;
-  font-size: 0.85rem;
-  color: #bdc3c7;
-  margin-top: 1rem;
-  font-style: italic;
-}
-/* Indicator for days that have tasks */
-.calendar-day.has-task {
-  /* This creates a 3px "border" using a background trick to support rounded corners */
-  border: 3px solid transparent;
-  background-image: 
-    linear-gradient(rgba(44, 62, 80, 0.75), rgba(44, 62, 80, 0.75)), 
-    linear-gradient(135deg, #f1c40f, #f39c12);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
 }
 
-/* Ensure the gradient pops on hover */
-.calendar-day.has-task:hover {
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), 
-    linear-gradient(135deg, #ffe66d, #f1c40f);
-  transform: scale(1.08);
-}
-
-/* Modal Calendar Picker Styles */
-.picker-label {
-  color: #333;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.modal-mini-calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  margin-bottom: 1.5rem;
-  background: #f9f9f9;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-.picker-day {
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  color: #444;
-  transition: 0.2s;
-}
-
-.picker-day:hover {
-  background: #e0e0e0;
-}
-
-.picker-day.selected {
-  background: #8e44ad !important;
+.calendar-header button {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
   color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
   font-weight: bold;
+  transition: all 0.2s ease;
 }
 
-.picker-day.is-today {
-  color: #3498db;
-  text-decoration: underline;
-  font-weight: bold;
+.calendar-header button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.calendar-header button:active {
+  transform: scale(0.9);
+}
+
+/* Responsive tweak */
+@media (min-width: 1024px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

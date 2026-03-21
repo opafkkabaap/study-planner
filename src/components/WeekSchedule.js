@@ -1,27 +1,38 @@
+// src/components/WeekSchedule.js  —  UPDATED VERSION
+//
+// Changes from original:
+//   • addTaskToDay()  → POST /api/tasks
+//   • toggleTaskDone() → PATCH /api/tasks/:id
+//   • deleteTask()    → DELETE /api/tasks/:id
+//   • tasks come from App.js (already fetched from API)
+//   • All task ids use _id (MongoDB)
+//   • month stored as index (0-indexed) to match DB + Dashboard
+
 import { useState } from 'react';
+import api from '../api';
 import './WeekSchedule.css';
 
 export default function WeekSchedule({ tasks, setTasks }) {
-  // Temporary states for the dropdowns
-  const [tempMonth, setTempMonth] = useState('april');
-  const [tempWeek, setTempWeek] = useState('week1');
-  const [tempYear, setTempYear] = useState('2026');
+  const [tempMonth, setTempMonth]     = useState('february');
+  const [tempWeek, setTempWeek]       = useState('week2');
+  const [tempYear, setTempYear]       = useState('2026');
+  const [selectedMonth, setSelectedMonth] = useState('february');
+  const [selectedWeek, setSelectedWeek]   = useState('week2');
+  const [selectedYear, setSelectedYear]   = useState('2026');
 
-  // Confirmed states (what the UI actually displays)
-  const [selectedMonth, setSelectedMonth] = useState('april');
-  const [selectedWeek, setSelectedWeek] = useState('week1');
-  const [selectedYear, setSelectedYear] = useState('2026');
-
-  const [activeDay, setActiveDay] = useState(null);
+  const [activeDay, setActiveDay]       = useState(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [currentDay, setCurrentDay] = useState(null);
+  const [currentDay, setCurrentDay]     = useState(null);
   const [submitMessage, setSubmitMessage] = useState('');
-  const [newTaskText, setNewTaskText] = useState('');
+  const [newTaskText, setNewTaskText]   = useState('');
 
-  const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-  const weeks = ['week1', 'week2', 'week3', 'week4', 'week5'];
-  const years = ['2025', '2026', '2027'];
-  const days = [1, 2, 3, 4, 5, 6, 7];
+  const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  const weeks  = ['week1','week2','week3','week4','week5'];
+  const years  = ['2025','2026','2027'];
+  const days   = [1,2,3,4,5,6,7];
+
+  // Convert month name to 0-indexed number for DB queries
+  const monthIndex = (monthName) => months.indexOf(monthName.toLowerCase());
 
   const handleSubmit = () => {
     setSelectedMonth(tempMonth);
@@ -31,60 +42,57 @@ export default function WeekSchedule({ tasks, setTasks }) {
     setTimeout(() => setSubmitMessage(''), 2000);
   };
 
-  // Filter tasks based on the day AND the current context (month/year)
   const getTasksForDay = (day) => {
     if (!tasks || !Array.isArray(tasks)) return [];
-    return tasks.filter(t => 
-      t.date === day && 
-      t.month === selectedMonth && 
-      t.year === selectedYear
+    return tasks.filter(t =>
+      t.day === day &&
+      t.month === monthIndex(selectedMonth) &&
+      t.year === parseInt(selectedYear)
     );
   };
 
-  const addTaskToDay = () => {
+  const addTaskToDay = async () => {
     if (!newTaskText.trim() || !currentDay) return;
-
-    const newTask = {
-      id: Date.now(),
-      text: newTaskText.trim(),
-      done: false,
-      date: currentDay,
-      month: selectedMonth, // Store month to prevent tasks bleeding into other months
-      year: selectedYear,
-    };
-
-    setTasks(prev => [...prev, newTask]);
-    setNewTaskText('');
+    try {
+      const { data } = await api.post('/tasks', {
+        text: newTaskText.trim(),
+        day: currentDay,
+        month: monthIndex(selectedMonth),
+        year: parseInt(selectedYear),
+      });
+      setTasks(prev => [...prev, data]);
+      setNewTaskText('');
+    } catch (err) {
+      console.error('Add task failed', err);
+    }
   };
 
-  const toggleTaskDone = (taskId) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === taskId ? { ...task, done: !task.done } : task
-      )
-    );
+  const toggleTaskDone = async (taskId) => {
+    const task = tasks.find(t => t._id === taskId);
+    try {
+      const { data } = await api.patch(`/tasks/${taskId}`, { done: !task.done });
+      setTasks(prev => prev.map(t => t._id === taskId ? data : t));
+    } catch (err) {
+      console.error('Toggle failed', err);
+    }
   };
 
-  const deleteTask = (taskId) => {
-    setTasks(prev => prev.filter(task => task.id !== taskId));
+  const deleteTask = async (taskId) => {
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      setTasks(prev => prev.filter(t => t._id !== taskId));
+    } catch (err) {
+      console.error('Delete failed', err);
+    }
   };
 
-  const openDayModal = (day) => {
-    setCurrentDay(day);
-    setActiveDay(day);
-    setShowTaskModal(true);
-  };
-
-  const closeModal = () => {
-    setShowTaskModal(false);
-    setActiveDay(null);
-    setNewTaskText('');
-  };
+  const openDayModal = (day) => { setCurrentDay(day); setActiveDay(day); setShowTaskModal(true); };
+  const closeModal   = () => { setShowTaskModal(false); setActiveDay(null); setNewTaskText(''); };
 
   const getDaySummary = (day) => {
     const dayTasks = getTasksForDay(day);
-    const total = dayTasks.length;
-    const pending = dayTasks.filter(t => !t.done).length;
+    const total    = dayTasks.length;
+    const pending  = dayTasks.filter(t => !t.done).length;
     return total === 0 ? null : { total, pending };
   };
 
@@ -95,29 +103,23 @@ export default function WeekSchedule({ tasks, setTasks }) {
           <select value={tempMonth} onChange={e => setTempMonth(e.target.value)}>
             {months.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
-
           <select value={tempWeek} onChange={e => setTempWeek(e.target.value)}>
             {weeks.map(w => <option key={w} value={w}>{w}</option>)}
           </select>
-
           <select value={tempYear} onChange={e => setTempYear(e.target.value)}>
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
-
-          <button className="submit-btn" onClick={handleSubmit}>
-            Update View
-          </button>
+          <button className="submit-btn" onClick={handleSubmit}>Update View</button>
         </div>
         {submitMessage && <div className="submit-message">{submitMessage}</div>}
       </div>
 
-      <h2>tasks for {selectedMonth} {selectedYear}</h2>
+      <h2>Your tasks</h2>
 
       <div className="week-grid">
         {days.map(day => {
-          const summary = getDaySummary(day);
+          const summary    = getDaySummary(day);
           const hasPending = summary && summary.pending > 0;
-
           return (
             <div
               key={day}
@@ -150,8 +152,7 @@ export default function WeekSchedule({ tasks, setTasks }) {
         <div className="modal-backdrop" onClick={closeModal}>
           <div className="task-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Day {currentDay} Summary</h3>
-              <p>{selectedMonth} {selectedYear}</p>
+              <h3>Day {currentDay} — {selectedMonth} {selectedYear}</h3>
             </div>
 
             <div className="task-input-area">
@@ -168,32 +169,21 @@ export default function WeekSchedule({ tasks, setTasks }) {
 
             <div className="task-list-container">
               {getTasksForDay(currentDay).length === 0 ? (
-                <div className="no-tasks">
-                  <p>No tasks scheduled for this day.</p>
-                </div>
+                <div className="no-tasks"><p>No tasks for this day.</p></div>
               ) : (
                 <ul className="task-list">
                   {getTasksForDay(currentDay).map(task => (
-                    <li key={task.id} className={task.done ? 'done' : ''}>
-                      <label className="checkbox-container">
-                        <input
-                          type="checkbox"
-                          checked={task.done}
-                          onChange={() => toggleTaskDone(task.id)}
-                        />
-                        <span className="checkmark"></span>
-                      </label>
+                    <li key={task._id} className={task.done ? 'done' : ''}>
+                      <input type="checkbox" checked={task.done} onChange={() => toggleTaskDone(task._id)} />
                       <span className="task-text">{task.text}</span>
-                      <button className="delete-btn" onClick={() => deleteTask(task.id)}>×</button>
+                      <button className="delete-btn" onClick={() => deleteTask(task._id)}>×</button>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
 
-            <button className="close-modal-btn" onClick={closeModal}>
-              Done
-            </button>
+            <button className="close-modal-btn" onClick={closeModal}>Done</button>
           </div>
         </div>
       )}

@@ -1,95 +1,139 @@
-import { useState } from 'react';
+// src/components/Dashboard.js  —  UPDATED VERSION
+//
+// Key changes from original:
+//   • Tasks come from props (set by App.js via API) — no more hardcoded useState
+//   • addTask()     → POST /api/tasks
+//   • toggleDone()  → PATCH /api/tasks/:id
+//   • postponeTask() → PATCH /api/tasks/:id  (move date back one day)
+//   • MongoDB uses _id not id — all .map(t => t._id) updated
+//   • exams loaded from GET /api/exams on mount
+
+import { useState, useEffect } from 'react';
+import api from '../api';
 import './Dashboard.css';
 
-export default function Dashboard() {
-  const todayDay = 8;
-  const currentMonth = "Feb";
-  const currentYear = 2026;
-  const daysInFeb = 28; // 2026 is not a leap year
+export default function Dashboard({ tasks, setTasks }) {
+  const today      = new Date();
+  const todayDay   = today.getDate();
+  const todayMonth = today.getMonth();
+  const todayYear  = today.getFullYear();
 
-  const exams = [
-    { id: 1, subject: 'DSA PAT', date: 9, month: 'Feb', year: 2026 },
-    { id: 2, subject: 'Maths Midterm', date: 15, month: 'Feb', year: 2026 },
-    { id: 3, subject: 'Physics Lab', date: 22, month: 'Feb', year: 2026 },
-  ];
+  const [viewDate, setViewDate] = useState(new Date());
+  const currentMonth = viewDate.getMonth();
+  const currentYear  = viewDate.getFullYear();
+  const daysInMonth  = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const monthName    = viewDate.toLocaleString('default', { month: 'long' });
 
-  const [tasks, setTasks] = useState([
-    { id: 1, text: "Morning Yoga Bliss", done: false, category: "present", date: 8 },
-    { id: 2, text: "DSA - Binary Search revision", done: false, category: "present", date: 8 },
-    { id: 3, text: "Physics - Mechanics notes", done: true, category: "present", date: 8 },
-    { id: 4, text: "Maths - Calculus 50 problems", done: false, category: "pending", date: 10 },
-    { id: 5, text: "English vocab Day 12", done: false, category: "pending", date: 12 },
-  ]);
-
-  const [newTaskText, setNewTaskText] = useState("");
+  const [exams, setExams]               = useState([]);
+  const [newTaskText, setNewTaskText]   = useState('');
   const [selectedDate, setSelectedDate] = useState(todayDay);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showExamModal, setShowExamModal] = useState(false);
+  const [taskError, setTaskError]       = useState('');
 
-  const presentTasks = tasks.filter(t => t.date === todayDay);
-  const otherTasks = tasks.filter(t => t.date !== todayDay);
+  // Load exams from backend
+  useEffect(() => {
+    api.get('/exams').then(res => setExams(res.data)).catch(console.error);
+  }, []);
 
-  const addTask = () => {
+  // ── Filtering (same logic, just _id instead of id) ─────────────────
+  const presentTasks = tasks.filter(t =>
+    t.day === todayDay && t.month === todayMonth && t.year === todayYear
+  );
+
+  const pendingTasks = tasks.filter(t => {
+    const taskDate  = new Date(t.year, t.month, t.day);
+    const todayDate = new Date(todayYear, todayMonth, todayDay);
+    return taskDate < todayDate && !t.done;
+  });
+
+  const changeMonth = (offset) =>
+    setViewDate(new Date(currentYear, currentMonth + offset, 1));
+
+  // ── API-backed handlers ─────────────────────────────────────────────
+
+  const addTask = async () => {
     if (!newTaskText.trim()) return;
-    const newTask = {
-      id: Date.now(),
-      text: newTaskText.trim(),
-      done: false,
-      category: selectedDate === todayDay ? "present" : "pending",
-      date: selectedDate,
-    };
-    setTasks(prev => [...prev, newTask]);
-    setNewTaskText("");
-    setShowAddModal(false);
+    try {
+      const { data } = await api.post('/tasks', {
+        text: newTaskText.trim(),
+        day: selectedDate,
+        month: currentMonth,
+        year: currentYear,
+      });
+      setTasks(prev => [...prev, data]);
+      setNewTaskText('');
+      setShowAddModal(false);
+    } catch (err) {
+      setTaskError(err.response?.data?.message || 'Failed to add task');
+    }
   };
 
-  const toggleDone = (id) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, done: !task.done } : task
-    ));
+  const toggleDone = async (id) => {
+    const task = tasks.find(t => t._id === id);
+    try {
+      const { data } = await api.patch(`/tasks/${id}`, { done: !task.done });
+      setTasks(prev => prev.map(t => t._id === id ? data : t));
+    } catch (err) {
+      console.error('Toggle failed', err);
+    }
   };
 
-  const handleCalendarClick = (day) => {
-    setSelectedDate(day);
-    setShowAddModal(true);
+  const postponeTask = async (id) => {
+    const task = tasks.find(t => t._id === id);
+    const d = new Date(task.year, task.month, task.day);
+    d.setDate(d.getDate() - 1);
+    try {
+      const { data } = await api.patch(`/tasks/${id}`, {
+        day: d.getDate(), month: d.getMonth(), year: d.getFullYear(),
+      });
+      setTasks(prev => prev.map(t => t._id === id ? data : t));
+    } catch (err) {
+      console.error('Postpone failed', err);
+    }
   };
 
   return (
     <div className="dashboard-wrapper">
       <div className="dashboard-content">
-        <h1>Welcome back!</h1>
+        <h1>Welcome back 👋🏼</h1>
 
         <div className="cards-grid">
+          {/* Today's Tasks */}
           <div className="card present-day">
-            <h3>Today's Work ({currentMonth} {todayDay})</h3>
+            <h3>Today's Work</h3>
             {presentTasks.length === 0 ? (
-              <p className="empty-text">Add some tasks to crush today!</p>
+              <p className="empty-text">Add tasks to crush today!</p>
             ) : (
               <ul className="task-list">
                 {presentTasks.map(task => (
-                  <li key={task.id} className={task.done ? "done" : ""}>
-                    <input type="checkbox" checked={task.done} onChange={() => toggleDone(task.id)} />
-                    <div className="task-info">
-                      <span className="task-text">{task.text}</span>
-                    </div>
+                  <li key={task._id} className={task.done ? 'done' : ''}>
+                    <input type="checkbox" checked={task.done} onChange={() => toggleDone(task._id)} />
+                    <span className="task-text">{task.text}</span>
+                    {!task.done && (
+                      <button className="move-btn" onClick={() => postponeTask(task._id)}>
+                        → Pending
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
-          <div className="card pending-tasks">
-            <h3>Upcoming/Other Tasks</h3>
-            {otherTasks.length === 0 ? (
-              <p className="empty-text">No other tasks scheduled 🏆</p>
+          {/* Pending */}
+          <div className="card pending-block">
+            <h3 className="warning-title">Pending</h3>
+            {pendingTasks.length === 0 ? (
+              <p className="empty-text">All caught up! 🏆</p>
             ) : (
               <ul className="task-list">
-                {otherTasks.map(task => (
-                  <li key={task.id} className={task.done ? "done" : ""}>
-                    <input type="checkbox" checked={task.done} onChange={() => toggleDone(task.id)} />
+                {pendingTasks.map(task => (
+                  <li key={task._id} className="overdue-item">
+                    <input type="checkbox" checked={task.done} onChange={() => toggleDone(task._id)} />
                     <div className="task-info">
                       <span className="task-text">{task.text}</span>
-                      <small className="task-date">{currentMonth} {task.date}</small>
+                      <small className="task-date">Due: {task.month + 1}/{task.day}/{task.year}</small>
                     </div>
                   </li>
                 ))}
@@ -97,26 +141,34 @@ export default function Dashboard() {
             )}
           </div>
 
+          {/* Mini Calendar */}
           <div className="card calendar-preview">
-            <h3>{currentMonth} {currentYear}</h3>
+            <div className="calendar-header">
+              <button onClick={() => changeMonth(-1)}>←</button>
+              <h3>{monthName} {currentYear}</h3>
+              <button onClick={() => changeMonth(1)}>→</button>
+            </div>
             <div className="mini-calendar">
-              {Array.from({ length: daysInFeb }, (_, i) => {
+              {Array.from({ length: daysInMonth }, (_, i) => {
                 const day = i + 1;
-                const isToday = day === todayDay;
-                const hasExam = exams.some(e => e.date === day);
-                const hasTask = tasks.some(t => t.date === day);
+                const isToday  = day === todayDay && currentMonth === todayMonth && currentYear === todayYear;
+                const hasExam  = exams.some(e => {
+                  if (!e.date) return false;
+                  const [d, m, y] = e.date.split('/').map(Number);
+                  return d === day && m === currentMonth + 1 && y === currentYear;
+                });
+                const hasTask  = tasks.some(t => t.day === day && t.month === currentMonth && t.year === currentYear);
                 return (
                   <div
                     key={day}
-                    className={`calendar-day ${isToday ? "today" : ""} ${hasExam ? "exam" : ""} ${hasTask ? "has-task" : ""}`}
-                    onClick={() => handleCalendarClick(day)}
+                    className={`calendar-day ${isToday ? 'today' : ''} ${hasExam ? 'exam' : ''} ${hasTask ? 'has-task' : ''}`}
+                    onClick={() => { setSelectedDate(day); setShowAddModal(true); }}
                   >
                     {day}
                   </div>
                 );
               })}
             </div>
-            <p className="calendar-hint">Click a date to schedule</p>
           </div>
         </div>
 
@@ -130,50 +182,38 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Add Task Modal */}
       {showAddModal && (
         <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
           <div className="add-modal" onClick={e => e.stopPropagation()}>
-            <h3>New Task for {currentMonth} {selectedDate}</h3>
+            <h3>New Task: {monthName} {selectedDate}, {currentYear}</h3>
+            {taskError && <p style={{ color: '#e74c3c', marginBottom: '1rem' }}>{taskError}</p>}
             <input
               type="text"
               value={newTaskText}
               onChange={e => setNewTaskText(e.target.value)}
               placeholder="What needs to be done?"
               autoFocus
+              onKeyDown={e => e.key === 'Enter' && addTask()}
             />
-            
-            <p className="picker-label">Select Date:</p>
-            <div className="modal-mini-calendar">
-               {Array.from({ length: daysInFeb }, (_, i) => {
-                const day = i + 1;
-                return (
-                  <div 
-                    key={day} 
-                    className={`picker-day ${selectedDate === day ? "selected" : ""} ${day === todayDay ? "is-today" : ""}`}
-                    onClick={() => setSelectedDate(day)}
-                  >
-                    {day}
-                  </div>
-                );
-              })}
-            </div>
-
             <div className="modal-actions">
-              <button className="cancel-btn" onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className="add-btn" onClick={addTask}>Add Task</button>
+              <button className="btn cancel-btn" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button className="btn add-btn" onClick={addTask}>Add Task</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Exam Modal */}
       {showExamModal && (
         <div className="modal-backdrop" onClick={() => setShowExamModal(false)}>
           <div className="exam-modal" onClick={e => e.stopPropagation()}>
             <h3>Upcoming Exams</h3>
             <ul className="exam-list">
-              {exams.map(ex => (
-                <li key={ex.id}>
-                  <strong>{ex.subject}</strong> — {ex.month} {ex.date}
+              {exams.map(exam => (
+                <li key={exam._id}>
+                  <strong>{exam.title}</strong> – {exam.date} &nbsp;
+                  <span style={{ color: '#3498db' }}>{exam.subject}</span>
                 </li>
               ))}
             </ul>
