@@ -52,11 +52,9 @@ const taskSchema = new mongoose.Schema(
 );
 
 // Auto-compute dueDate before every save
-taskSchema.pre('save', function (next) {
+taskSchema.pre('save', function () {
   this.dueDate = new Date(this.year, this.month, this.day);
-  next();
 });
-
 // Compound index so "give me all tasks for user X in month Y, year Z" is fast
 taskSchema.index({ user: 1, dueDate: 1 });
 

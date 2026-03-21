@@ -42,10 +42,9 @@ const examSchema = new mongoose.Schema(
 );
 
 // Parse date string into a proper Date before saving
-examSchema.pre('save', function (next) {
+examSchema.pre('save', function () {
   const [d, m, y] = this.date.split('/').map(Number);
-  this.examDate = new Date(y, m - 1, d); // month is 0-indexed in JS
-  next();
+  this.examDate = new Date(y, m - 1, d);
 });
 
 examSchema.index({ user: 1, examDate: 1 });

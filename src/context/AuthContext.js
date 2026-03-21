@@ -1,9 +1,3 @@
-// src/context/AuthContext.js
-//
-// Wraps the entire app so any component can read/write auth state
-// without prop-drilling. Uses localStorage to persist the token
-// across page refreshes.
-
 import { createContext, useContext, useState, useCallback } from 'react';
 import api from '../api';
 
@@ -40,7 +34,6 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  // Call this after updating the name in settings
   const refreshUser = useCallback(async () => {
     const { data } = await api.get('/auth/me');
     localStorage.setItem('sp_user', JSON.stringify(data));
@@ -54,5 +47,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Convenience hook
 export const useAuth = () => useContext(AuthContext);

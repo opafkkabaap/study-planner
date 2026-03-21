@@ -26,13 +26,14 @@ export default function LoginPage() {
     try {
       if (mode === 'login') {
         await login(email, password);
+        navigate('/');
       } else {
         if (!name.trim()) { setError('Name is required'); setLoading(false); return; }
         await register(name, email, password);
+        navigate('/');
       }
-      navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
+      setError(err.response?.data?.message || 'Something went wrong. Is the backend running on port 5000?');
     } finally {
       setLoading(false);
     }

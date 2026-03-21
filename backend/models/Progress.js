@@ -36,9 +36,8 @@ const progressSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-progressSchema.pre('save', function (next) {
+progressSchema.pre('save', function () {
   this.logDate = new Date(this.year, this.month, this.day);
-  next();
 });
 
 progressSchema.index({ user: 1, logDate: 1, subject: 1 });
