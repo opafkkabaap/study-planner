@@ -12,7 +12,7 @@ import './Progress.css';
 
 // The two subjects tracked — matches original chart legend
 const SUBJECTS = ['Maths', 'Physics'];
-const COLORS   = { Maths: '#3498db', Physics: '#8e44ad' };
+//const COLORS   = { Maths: '#3498db', Physics: '#8e44ad' };
 
 export default function Progress() {
   const [viewMode, setViewMode] = useState('week');
