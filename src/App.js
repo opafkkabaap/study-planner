@@ -20,6 +20,7 @@ import WeekSchedule     from './components/WeekSchedule';
 import Progress         from './components/Progress';
 import ExamDates        from './components/ExamDates';
 import AccountSettings  from './components/AccountSettings';
+import TaskAnalytics    from './components/TaskAnalytics';
 import LoginPage        from './pages/LoginPage';
 
 import './App.css';
@@ -80,6 +81,9 @@ function AppInner() {
           } />
           <Route path="/account" element={
             <ProtectedRoute><AccountSettings /></ProtectedRoute>
+          } />
+          <Route path="/analytics" element={
+            <ProtectedRoute><TaskAnalytics /></ProtectedRoute>
           } />
         </Routes>
       </main>

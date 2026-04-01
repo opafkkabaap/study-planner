@@ -22,7 +22,8 @@ exports.getTasks = async (req, res) => {
 // POST /api/tasks
 exports.createTask = async (req, res) => {
   try {
-    const { text, day, month, year } = req.body;
+    const { text, day, month, year, estimatedCompletion } = req.body;
+
     const task = await Task.create({
       user: req.user._id,
       text,
@@ -30,6 +31,7 @@ exports.createTask = async (req, res) => {
       month,
       year,
       dueDate: new Date(year, month, day),
+      estimatedCompletion: estimatedCompletion ? new Date(estimatedCompletion) : null,
     });
     res.status(201).json(task);
   } catch (err) {
@@ -48,11 +50,45 @@ exports.updateTask = async (req, res) => {
       if (req.body[field] !== undefined) task[field] = req.body[field];
     });
 
-    // Recompute dueDate whenever date fields change
+    // Auto-capture actual completion time when marked done
+    if (req.body.done === true && !task.completedAt) {
+      task.completedAt = new Date();
+    }
+    if (req.body.done === false) {
+      task.completedAt = null;
+    }
+
+    // Manual override of completedAt
+    if (req.body.completedAt !== undefined) {
+      task.completedAt = req.body.completedAt ? new Date(req.body.completedAt) : null;
+    }
+
+    // Update estimated completion time
+    if (req.body.estimatedCompletion !== undefined) {
+      task.estimatedCompletion = req.body.estimatedCompletion 
+        ? new Date(req.body.estimatedCompletion) 
+        : null;
+    }
+
+    // Recompute dueDate
     task.dueDate = new Date(task.year, task.month, task.day);
 
     await task.save();
     res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET /api/tasks/analytics
+exports.getAnalytics = async (req, res) => {
+  try {
+    const tasks = await Task.find({
+      user: req.user._id,
+      estimatedCompletion: { $ne: null },
+      completedAt:         { $ne: null },
+    }).sort({ estimatedCompletion: 1 });
+    res.json(tasks);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

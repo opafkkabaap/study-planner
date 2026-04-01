@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 
 const taskSchema = new mongoose.Schema(
   {
+    // Add / replace these two fields in your Task schema
+estimatedCompletion: { type: Date, default: null },   // ← NEW name (was estimatedDate)
+completedAt:         { type: Date, default: null },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -21,7 +24,9 @@ const taskSchema = new mongoose.Schema(
     day:   { type: Number, required: true, min: 1, max: 31 },
     month: { type: Number, required: true, min: 0, max: 11 },
     year:  { type: Number, required: true },
-    dueDate: { type: Date },
+    dueDate:       { type: Date },
+    estimatedDate: { type: Date, default: null },
+    completedAt:   { type: Date, default: null },
   },
   { timestamps: true }
 );

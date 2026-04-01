@@ -36,6 +36,11 @@ export default function Sidebar() {
               <span className="icon"></span> exam dates
             </NavLink>
           </li>
+          <li>
+            <NavLink to="/analytics" className={({ isActive }) => isActive ? "active" : ""}>
+              <span className="icon"></span> task analytics
+            </NavLink>
+          </li>
         </ul>
       </nav>
 
